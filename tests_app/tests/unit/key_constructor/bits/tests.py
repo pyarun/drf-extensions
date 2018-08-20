@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from mock import Mock
+from mock import PropertyMock
 
 from django.test import TestCase
 from django.utils.translation import override
@@ -7,7 +8,6 @@ from django.utils.translation import override
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework_extensions.test import APIRequestFactory
-from rest_framework_extensions.utils import get_django_features
 
 from rest_framework_extensions.key_constructor.bits import (
     KeyBitDictBase,
@@ -245,7 +245,8 @@ class UserKeyBitTest(TestCase):
         }
         self.user = Mock()
         self.user.id = 123
-        self.user.is_authenticated = Mock(return_value=False)
+        self.is_authenticated = PropertyMock(return_value=False)
+        type(self.user).is_authenticated = self.is_authenticated
 
     def test_without_user_in_request(self):
         expected = u'anonymous'
@@ -258,7 +259,7 @@ class UserKeyBitTest(TestCase):
 
     def test_with_autenticated_user(self):
         self.kwargs['request'].user = self.user
-        self.kwargs['request'].user.is_authenticated.return_value = True
+        self.is_authenticated.return_value = True
         expected = u'123'
         self.assertEqual(UserKeyBit().get_data(**self.kwargs), expected)
 
@@ -390,9 +391,9 @@ class ListSqlQueryKeyBitTest(TestCase):
         self.kwargs['view_instance'].filter_queryset = lambda x: x.filter(is_active=True)
 
     def test_should_use_view__get_queryset__and_filter_it_with__filter_queryset(self):
-        expected = (u'SELECT "tests_app_bittestmodel"."id", "tests_app_bittestmodel"."is_active" '
-                    u'FROM "tests_app_bittestmodel" '
-                    u'WHERE "tests_app_bittestmodel"."is_active" = True{space}')
+        expected = (u'SELECT "unit_bittestmodel"."id", "unit_bittestmodel"."is_active" '
+                    u'FROM "unit_bittestmodel" '
+                    u'WHERE "unit_bittestmodel"."is_active" = True{space}')
 
         space = ''
         expected = expected.format(space=space)
@@ -462,9 +463,9 @@ class RetrieveSqlQueryKeyBitTest(TestCase):
         self.kwargs['view_instance'].filter_queryset = lambda x: x.filter(is_active=True)
 
     def test_should_use_view__get_queryset__and_filter_it_with__filter_queryset__and_filter_by__lookup_field(self):
-        expected = (u'SELECT "tests_app_bittestmodel"."id", "tests_app_bittestmodel"."is_active" '
-                    u'FROM "tests_app_bittestmodel" '
-                    u'WHERE ("tests_app_bittestmodel"."is_active" = True {space}AND "tests_app_bittestmodel"."id" = 123{space})')
+        expected = (u'SELECT "unit_bittestmodel"."id", "unit_bittestmodel"."is_active" '
+                    u'FROM "unit_bittestmodel" '
+                    u'WHERE ("unit_bittestmodel"."is_active" = True {space}AND "unit_bittestmodel"."id" = 123{space})')
         space = ''
         expected = expected.format(space=space)
 
